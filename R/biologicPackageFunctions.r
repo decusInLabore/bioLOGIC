@@ -907,6 +907,118 @@ import.db.table.from.db <- function(dbtable = "interpro_categori",
 # End of function
 
 ###############################################################################
+## (18) Retrieve gene category from db                                       ##
+###############################################################################
+#' @export
+
+retrieve.gene.category.from.db <- function(
+    cat_id         = "mysigdb_c5_MF__127",
+    dbname         = "reference_categories_db_new",
+    user           = "boeings",
+    password       = "",
+    host           = "www.biologic-db.org",
+    gene.symbol    = "mgi_symbol",
+    print.cat.name = TRUE
+){
+    library(RMySQL)
+
+    table <- unlist(
+        strsplit(
+            cat_id, "__"
+        )
+    )[1]
+
+    ## Query category name ##
+    drv = RMySQL::MySQL()
+
+    sql.query = paste0(
+        "SELECT cat_id, cat_name from ",
+        table,
+        " WHERE cat_id = '",
+        cat_id, "'"
+    )
+
+    dbDB <- dbConnect(
+        drv      = RMySQL::MySQL(),
+        user     = user,
+        password = password,
+        host     = host,
+        dbname   = dbname
+    )
+
+    cat.vec = dbGetQuery(
+        dbDB,
+        sql.query
+    )
+
+    dbDisconnect(dbDB)
+
+    if (print.cat.name){
+        print(
+            paste(
+                "Retrieved category: ",
+                paste0(
+                    cat.vec$cat_name,
+                    collapse = ", "
+                )
+            )
+        )
+
+        print(
+            paste(
+                "Retrieved category ID: ",
+                paste0(
+                    cat.vec$cat_id,
+                    collapse = ", "
+                )
+            )
+        )
+
+    }
+
+
+    ## Query genes ##
+    sql.query = paste0(
+        "SELECT ",
+        gene.symbol,
+        " from ",
+        table,
+        " WHERE cat_id = '",
+        cat_id, "'"
+    )
+
+    dbDB <- dbConnect(
+        drv      = RMySQL::MySQL(),
+        user     = user,
+        password = password,
+        host     = host,
+        dbname   = dbname
+    )
+
+    cat.vec = dbGetQuery(
+        dbDB,
+        sql.query
+    )[,gene.symbol]
+
+    dbDisconnect(dbDB)
+
+    cat.vec <- unlist(
+        strsplit(
+            cat.vec,
+            ";"
+        )
+    )
+    cat.vec <- cat.vec[!is.na(cat.vec)]
+    cat.vec <- cat.vec[cat.vec != ""]
+    cat.vec = as.vector(unique(cat.vec))
+    return(cat.vec)
+}
+
+## End of function                                                           ##
+###############################################################################
+
+
+###############################################################################
 ## (2B) createSettingsFile()                                                 ##
 #' @export
 

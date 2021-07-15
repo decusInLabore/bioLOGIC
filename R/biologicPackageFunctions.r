@@ -513,7 +513,7 @@ upload.datatable.to.database <- function(
                 )$ConnectionCount
             )
 
-            dbDisconnect(dbDB)
+            DBI::dbDisconnect(dbDB)
 
             return(connectionCount)
         }
@@ -564,7 +564,7 @@ upload.datatable.to.database <- function(
         )
     )
 
-    dbDisconnect(dbDB)
+    DBI::dbDisconnect(dbDB)
 
     ## Ensure that df.data has a row_names column ##
     df.data[["row_names"]] <- first.row.name.index:(first.row.name.index+nrow(df.data)-1)
@@ -628,7 +628,7 @@ upload.datatable.to.database <- function(
                 sep = ""
             )
         )
-        dbDisconnect(dbDB)
+        DBI::dbDisconnect(dbDB)
     }
 
     ## Upload up to increment rows in one go ##
@@ -667,7 +667,7 @@ upload.datatable.to.database <- function(
                     append = TRUE,
                     overwrite = FALSE
                 )
-                dbDisconnect(dbDB)
+                DBI::dbDisconnect(dbDB)
                 uploaded = TRUE
                 #dbDisconnect(dbDB)
             }, error=function(e){cat("Upload errror :",conditionMessage(e), "\n")})
@@ -700,7 +700,7 @@ upload.datatable.to.database <- function(
                 cmd.string
             )}, error=function(e) {paste0("Alter not executed. cmd.vector[", i, "]")})
 
-        dbDisconnect(dbDB)
+        DBI::dbDisconnect(dbDB)
 
 
     }
@@ -824,7 +824,7 @@ upload.datatable.to.database <- function(
                     cmd.string
                 )}, error=function(e) {stop(paste0("Database table not uploaded. Problem adding index ",cols2Index[i],"."))})
 
-            dbDisconnect(dbDB)
+            DBI::dbDisconnect(dbDB)
 
             print(paste0("Datatable ", dbTableName, " successfully uploaded and column(s) ",paste(cols2Index, collapse = " ")," indexed."))
         }
@@ -876,7 +876,7 @@ import.db.table.from.db <- function(dbtable = "interpro_categori",
 
 
 
-    dbDisconnect(dbDB)
+    DBI::dbDisconnect(dbDB)
     download = TRUE
     i=1
     while (download) {
@@ -890,7 +890,7 @@ import.db.table.from.db <- function(dbtable = "interpro_categori",
         }
         )
 
-        dbDisconnect(dbDB)
+        DBI::dbDisconnect(dbDB)
         if (nrow(df.data) == nrows.to.download){
             download = FALSE
             print(paste0(nrow(df.data), " of ", nrows.to.download, " rows downloaded."))
@@ -951,7 +951,7 @@ retrieve.gene.category.from.db <- function(
         sql.query
     )
 
-    dbDisconnect(dbDB)
+    DBI::dbDisconnect(dbDB)
 
     if (print.cat.name){
         print(
@@ -1000,7 +1000,7 @@ retrieve.gene.category.from.db <- function(
         sql.query
     )[,gene.symbol]
 
-    dbDisconnect(dbDB)
+    DBI::dbDisconnect(dbDB)
 
     cat.vec <- unlist(
         strsplit(

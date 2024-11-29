@@ -365,10 +365,17 @@ killDbConnections <- function () {
 upload.pca.table.to.db <- function(
     df.pca,
     host = "www.biologic-db.org",
+    port = 3306,
     prim.data.db = "vtl_data",
     password = "",
     db.user = "boeings",
     PCAdbTableName = "P79_VTL_ES_PCA"){
+
+
+    ## Add little logic to compensate for missing port specification ##
+    if (host == "clvd1-db-u-p-31" && port == 3306){
+        port <- 6008
+    }
 
     # Create color pallets
     if (length(grep("sample.group_colors", names(df.pca))) == 0){
@@ -406,13 +413,13 @@ upload.pca.table.to.db <- function(
     #df.pca should contain three columns: sample_name, sample.group, sample.group_color, pca1, pca2, ..., pcaN
     df.pca[["row_names"]] <- 1:nrow(df.pca)
 
-    dbDB <- DBI::dbConnect(drv = RMySQL::MySQL(), user = db.user, password = password, host = host)
+    dbDB <- DBI::dbConnect(drv = RMySQL::MySQL(), user = db.user, password = password, host = host, port = port)
     DBI::dbGetQuery(dbDB, paste("CREATE DATABASE IF NOT EXISTS ", prim.data.db, sep=""))
-    dbDB <- DBI::dbConnect(drv = RMySQL::MySQL(), user = db.user, password = db.pwd, dbname=prim.data.db, host = host)
+    dbDB <- DBI::dbConnect(drv = RMySQL::MySQL(), user = db.user, password = db.pwd, dbname=prim.data.db, host = host, port = port)
     DBI::dbGetQuery(dbDB, paste("DROP TABLE IF EXISTS ", PCAdbTableName, sep=""))
     dbWriteTable(dbDB, PCAdbTableName, df.pca, row.names= FALSE)
 
-    dbDB <- DBI::dbConnect(drv = RMySQL::MySQL(), user = db.user, password = password, host = host, dbname=prim.data.db)
+    dbDB <- DBI::dbConnect(drv = RMySQL::MySQL(), user = db.user, password = password, host = host, port = port, dbname=prim.data.db)
     DBI::dbGetQuery(dbDB, paste("ALTER TABLE `",PCAdbTableName,"` ADD UNIQUE(`row_names`)", sep=""))
     DBI::dbGetQuery(dbDB, paste("ALTER TABLE `",PCAdbTableName,"` ADD PRIMARY KEY(`row_names`)", sep=""))
     DBI::dbGetQuery(dbDB, paste0(
@@ -463,6 +470,7 @@ upload.pca.table.to.db <- function(
 
 upload.datatable.to.database <- function(
     host = "www.biologic-db.org",
+    port = 3306,
     user = "db.user",
     password = "db.pwd",
     prim.data.db = "project.database",
@@ -483,6 +491,10 @@ upload.datatable.to.database <- function(
     startOnlyWithConnectionCount1 = FALSE,
     cols2Index = NULL
 ){
+
+    if (host == "clvd1-db-u-p-31" && port == 3306){
+        port <- 6008
+    }
 
     if (sum( nchar(names(df.data)) > 64) > 0){
         print("Table names clipped to 64 characters.")
@@ -522,7 +534,8 @@ upload.datatable.to.database <- function(
             user= user,
             password = password,
             dbname = prim.data.db,
-            host = host
+            host = host,
+            port = port
         )
 
         while (connectionCount > 2){
@@ -535,7 +548,8 @@ upload.datatable.to.database <- function(
                 user= user,
                 password = password,
                 dbname = prim.data.db,
-                host = host
+                host = host,
+                port = port
             )
 
 
@@ -551,6 +565,7 @@ upload.datatable.to.database <- function(
         user = user,
         password = password,
         host = host,
+        port = port,
         new.table = TRUE
     )
 
@@ -684,14 +699,19 @@ upload.datatable.to.database <- function(
         user = "user",
         password = "password",
         dbname = "prim.data.db",
-        host = "host"
+        host = "host",
+        port = 3306
     ){
+        if (host == "clvd1-db-u-p-31" && port == 3306){
+            port <- 6008
+        }
         dbDB <- DBI::dbConnect(
             drv = RMySQL::MySQL(),
             user = user,
             password = password,
             dbname = prim.data.db,
-            host = host
+            host = host,
+            port = port
         )
 
         tryCatch({
@@ -719,7 +739,8 @@ upload.datatable.to.database <- function(
             user = user,
             password = password,
             dbname = dbname,
-            host = host
+            host = host,
+            port = port
         )
 
         ## Describe key columns in database table ##
@@ -741,7 +762,8 @@ upload.datatable.to.database <- function(
             user = user,
             password = password,
             dbname = dbname,
-            host = host
+            host = host,
+            port = port
         )
 
 
@@ -787,7 +809,8 @@ upload.datatable.to.database <- function(
                     user = user,
                     password = password,
                     dbname = dbname,
-                    host = host
+                    host = host,
+                    port = port
                 )
             }
             #print(alteration.string)
@@ -815,7 +838,8 @@ upload.datatable.to.database <- function(
                 user = user,
                 password = password,
                 dbname = prim.data.db,
-                host = host
+                host = host,
+                port = port
             )
 
             tryCatch({
@@ -870,7 +894,7 @@ import.db.table.from.db <- function(dbtable = "interpro_categori",
 
     #library(RMySQL)
     ## Create connection
-    dbDB <- DBI::dbConnect(RMySQL::MySQL(), user = user, password = password, host = host, dbname=dbname)
+    dbDB <- DBI::dbConnect(RMySQL::MySQL(), user = user, password = password, host = host, port = port, dbname=dbname)
     ## Get number of expected rows from query ##
     nrows.to.download <- DBI::dbGetQuery(dbDB, paste0("SELECT COUNT(*) FROM ",dbtable))
 
@@ -880,7 +904,7 @@ import.db.table.from.db <- function(dbtable = "interpro_categori",
     download = TRUE
     i=1
     while (download) {
-        dbDB <- DBI::dbConnect(RMySQL::MySQL(), user = user, password = password, host = host, dbname=dbname)
+        dbDB <- DBI::dbConnect(RMySQL::MySQL(), user = user, password = password, host = host, port = port, dbname=dbname)
         out <- tryCatch({
             df.data = DBI::dbGetQuery(dbDB, paste0("SELECT DISTINCT * FROM ", dbtable))
         },
@@ -917,10 +941,15 @@ retrieve.gene.category.from.db <- function(
     user           = "boeings",
     password       = "",
     host           = "www.biologic-db.org",
+    port           = 3306,
     gene.symbol    = "mgi_symbol",
     print.cat.name = TRUE
 ){
     library(RMySQL)
+
+    if (host == "clvd1-db-u-p-31" && port == 3306){
+        port <- 6008
+    }
 
     table <- unlist(
         strsplit(
@@ -943,6 +972,7 @@ retrieve.gene.category.from.db <- function(
         user     = user,
         password = password,
         host     = host,
+        port = port,
         dbname   = dbname
     )
 
@@ -992,6 +1022,7 @@ retrieve.gene.category.from.db <- function(
         user     = user,
         password = password,
         host     = host,
+        port = port,
         dbname   = dbname
     )
 

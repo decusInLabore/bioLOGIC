@@ -877,11 +877,13 @@ upload.datatable.to.database <- function(
 ###################################
 #' @export
 
-import.db.table.from.db <- function(dbtable = "interpro_categori",
-                                    dbname = "reference_categories_db_new",
-                                    user     = "boeings",
-                                    password = "",
-                                    host     = "www.biologic-db.org"
+import.db.table.from.db <- function(
+  dbtable = "interpro_categori",
+  dbname = "reference_categories_db_new",
+  user     = "boeings",
+  password = "",
+  host     = "www.biologic-db.org",
+  port     = 3306
 ){
     ## Helper function ##
     oldw <- getOption("warn")
@@ -894,7 +896,14 @@ import.db.table.from.db <- function(dbtable = "interpro_categori",
 
     #library(RMySQL)
     ## Create connection
-    dbDB <- DBI::dbConnect(RMySQL::MySQL(), user = user, password = password, host = host, port = port, dbname=dbname)
+    dbDB <- DBI::dbConnect(
+      RMySQL::MySQL(),
+      user = user,
+      password = password,
+      host = host,
+      port = port,
+      dbname=dbname
+    )
     ## Get number of expected rows from query ##
     nrows.to.download <- DBI::dbGetQuery(dbDB, paste0("SELECT COUNT(*) FROM ",dbtable))
 
